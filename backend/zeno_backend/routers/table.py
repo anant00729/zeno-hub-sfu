@@ -6,6 +6,7 @@ import zeno_backend.database.select as select
 import zeno_backend.util as util
 from zeno_backend.classes.table import SliceTableRequest, TableRequest, TagTableRequest
 from zeno_backend.processing.filtering import table_filter
+import json
 
 router = APIRouter(tags=["zeno"])
 
@@ -30,11 +31,34 @@ async def get_filtered_table(project_uuid: str, req: TableRequest, request: Requ
     filter_sql = await table_filter(
         project_uuid, req.model, req.filter_predicates, req.data_ids
     )
+    column_data = await select.columns(project_uuid)
 
-    sql_table = await select.table_data_paginated(project_uuid, filter_sql, req)
-    table = pd.DataFrame(sql_table.table, columns=sql_table.columns)
+    # Convert the list of ZenoColumn objects to a list of dictionaries
+    columns_dict = [column.to_dict() for column in column_data]
 
-    return table.to_json(orient="records")
+    # Convert the list of dictionaries to JSON
+    columns_json = json.dumps(columns_dict, indent=4)
+    columns_json = json.loads(columns_json)
+    is_d_conf_present = any(column["name"] == "d_conf" for column in columns_json)
+    
+    if is_d_conf_present:
+        col_id = [item['id'] for item in columns_json if item['name'] == 'id'][0]
+        col_data = [item['id'] for item in columns_json if item['name'] == 'data'][0]
+        col_label = [item['id'] for item in columns_json if item['name'] == 'label'][0]
+        col_output = [item['id'] for item in columns_json if item['name'] == 'output'][0]
+        col_d_conf = [item['id'] for item in columns_json if item['name'] == 'd_conf'][0]
+        
+        data_cols = [col_id, col_data, col_label, "gt_boxes", col_output, col_d_conf , "d_boxes", "width", "height"]
+
+        main_data = await select.get_project_data(project_uuid=project_uuid, columns_json=columns_json, filter_sql=filter_sql, req=req, isSelectedGroupBy=req.isSelectedGroupBy)
+        table = pd.DataFrame(main_data, columns=data_cols)
+        json_response = table.to_json(orient="records")
+        return json_response        
+    else: 
+        sql_table = await select.table_data_paginated(project_uuid, filter_sql, req)
+        table = pd.DataFrame(sql_table.table, columns=sql_table.columns)
+        json_response = table.to_json(orient="records")
+        return json_response        
 
 
 @router.post(

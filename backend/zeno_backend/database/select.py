@@ -2721,3 +2721,116 @@ async def chart_config(
     if len(config) == 0:
         return None
     return config[0][0]
+
+
+async def get_project_data(project_uuid: str, columns_json: any, filter_sql: any, req: TableRequest, isSelectedGroupBy: bool) -> list[Tag]:
+    col_id = [item['id'] for item in columns_json if item['name'] == 'id'][0]
+    col_data = [item['id'] for item in columns_json if item['name'] == 'data'][0]
+    col_label = [item['id'] for item in columns_json if item['name'] == 'label'][0]
+    col_output = [item['id'] for item in columns_json if item['name'] == 'output'][0]
+    
+    col_xmin = [item['id'] for item in columns_json if item['name'] == 'xmin'][0]
+    col_ymin = [item['id'] for item in columns_json if item['name'] == 'ymin'][0]
+    col_xmax = [item['id'] for item in columns_json if item['name'] == 'xmax'][0]
+    col_ymax = [item['id'] for item in columns_json if item['name'] == 'ymax'][0]
+    
+    col_d_conf = [item['id'] for item in columns_json if item['name'] == 'd_conf'][0]
+    col_d_xmin = [item['id'] for item in columns_json if item['name'] == 'd_xmin'][0]
+    col_d_ymin = [item['id'] for item in columns_json if item['name'] == 'd_ymin'][0]
+    col_d_xmax = [item['id'] for item in columns_json if item['name'] == 'd_xmax'][0]
+    col_d_ymax = [item['id'] for item in columns_json if item['name'] == 'd_ymax'][0]
+    col_width = [item['id'] for item in columns_json if item['name'] == 'width'][0]
+    col_height = [item['id'] for item in columns_json if item['name'] == 'height'][0]
+    """Get a list of all tags created for a project.
+
+    Args:
+        project (str): the project the user is currently working with.
+
+    Raises:
+        Exception: something went wrong while extracting the tags from the database.
+
+    Returns:
+        list[Tag]: the list of tags associated with a project.
+    """
+    async with db_pool.connection() as conn:
+        async with conn.cursor() as cur:
+            q1 = []
+            if not isSelectedGroupBy:
+                 q1.append(sql.SQL("""
+                    SELECT {} as id, 
+                    {} as data, 
+                    ARRAY [{}] as label,
+                    ARRAY [ARRAY [{}, {}, {}, {}]] as gt_values,
+                    ARRAY [{}] as output,
+                    ARRAY [{}] as d_conf_values,
+                    ARRAY [ARRAY [{}, {}, {}, {}]] as d_results,
+                    {} as width,
+                    {} as height
+                    from {} 
+                    """).format(
+                        sql.Identifier(col_id),
+                        sql.Identifier(col_data),
+                        sql.Identifier(col_label),
+                        sql.Identifier(col_xmin),
+                        sql.Identifier(col_ymin),
+                        sql.Identifier(col_xmax),
+                        sql.Identifier(col_ymax),
+                        sql.Identifier(col_output),
+                        sql.Identifier(col_d_conf),
+                        sql.Identifier(col_d_xmin),
+                        sql.Identifier(col_d_ymin),
+                        sql.Identifier(col_d_xmax),
+                        sql.Identifier(col_d_ymax),
+                        sql.Identifier(col_width),
+                        sql.Identifier(col_height),
+                        sql.Identifier(project_uuid)
+                 ))
+                 
+                 if filter_sql is not None:
+                    filter = sql.SQL("")
+                    filter = sql.SQL("WHERE ") + filter_sql
+                    q1.append(filter)
+
+            else:                
+                q1.append(sql.SQL("""
+                        SELECT MIN({}) as id, 
+                        {} as data, 
+                        array_agg({}) as label,
+                        array_agg(ARRAY [{}, {}, {}, {}]) as gt_values,
+                        array_agg({}) as output,
+                        array_agg({}) as d_conf_values,
+                        array_agg(ARRAY [{}, {}, {}, {}]) as d_results,
+                        MIN({}) as width,
+                        MIN({}) as height
+                        from {} 
+                        """).format(
+                            sql.Identifier(col_id),
+                            sql.Identifier(col_data),
+                            sql.Identifier(col_label),
+                            sql.Identifier(col_xmin),
+                            sql.Identifier(col_ymin),
+                            sql.Identifier(col_xmax),
+                            sql.Identifier(col_ymax),
+                            sql.Identifier(col_output),
+                            sql.Identifier(col_d_conf),
+                            sql.Identifier(col_d_xmin),
+                            sql.Identifier(col_d_ymin),
+                            sql.Identifier(col_d_xmax),
+                            sql.Identifier(col_d_ymax),
+                            sql.Identifier(col_width),
+                            sql.Identifier(col_height),
+                            sql.Identifier(project_uuid)
+                        ))
+
+                if filter_sql is not None:
+                    filter = sql.SQL("")
+                    filter = sql.SQL("WHERE ") + filter_sql
+                    q1.append(filter)
+
+                q1.append(sql.SQL("GROUP BY {}").format(sql.Identifier(col_data)))                
+
+            q1.append(sql.SQL("LIMIT {} OFFSET {};").format(sql.Literal(req.limit), sql.Literal(req.offset)))
+
+            await cur.execute(sql.SQL(" ").join(q1))
+            returned_strings = await cur.fetchall()
+            return returned_strings

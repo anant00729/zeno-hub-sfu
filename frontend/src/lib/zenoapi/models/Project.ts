@@ -29,6 +29,7 @@ export type Project = {
 	metrics?: Array<Metric>;
 	ownerName: string;
 	view: string;
+	groupByView: string;
 	editor: boolean;
 	samplesPerPage?: number;
 	public?: boolean;

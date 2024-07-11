@@ -39,7 +39,20 @@
 			c.columnType === ZenoColumnType.FEATURE ||
 			c.columnType === ZenoColumnType.LABEL ||
 			c.columnType === ZenoColumnType.OUTPUT) &&
-		c.dataType !== MetadataType.EMBEDDING;
+		c.dataType !== MetadataType.EMBEDDING && 
+		c.name !== "data" &&
+		c.name !== "id" &&
+		c.name !== "d_xmax" &&
+		c.name !== "d_xmin" &&
+		c.name !== "d_ymin" &&
+		c.name !== "d_ymax" &&
+		c.name !== "xmax" &&
+		c.name !== "xmin" &&
+		c.name !== "ymin" &&
+		c.name !== "ymax" &&
+		c.name !== "height" &&
+		c.name !== "width" 
+		;
 	let metadataHistograms: Map<string, HistogramBucket[]> = new Map();
 
 	// Derived store to only update histograms once at startup.

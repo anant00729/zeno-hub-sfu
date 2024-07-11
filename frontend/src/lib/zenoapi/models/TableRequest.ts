@@ -33,4 +33,5 @@ export type TableRequest = {
 	filterPredicates?: FilterPredicateGroup | null;
 	sort: any[];
 	dataIds?: Array<string> | null;
+	isSelectedGroupBy?: boolean | null;
 };

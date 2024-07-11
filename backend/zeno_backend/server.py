@@ -7,6 +7,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request, Response, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from zeno_backend.routers import (
     account,
@@ -44,6 +45,7 @@ def get_server() -> FastAPI:
     Returns:
         FastAPI: FastAPI endpoint
     """
+
     app = FastAPI(title="Frontend API", separate_input_output_schemas=False)
     # Filter out /endpoint
     logging.getLogger("uvicorn.access").addFilter(EndpointFilter())
@@ -54,6 +56,15 @@ def get_server() -> FastAPI:
         load_dotenv(env_path)
 
     # if we have a CORS_ORIGIN variable in the environment, add middleware
+
+    # Allow all origins, allow credentials, allow specific headers, and allow specific methods
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],  # or specify specific origins
+        allow_credentials=True,
+        allow_methods=["GET", "POST", "PUT", "DELETE"],
+        allow_headers=["*"],
+    )
     if "CORS_ORIGIN" in os.environ:
         app.add_middleware(
             CORSMiddleware,
@@ -97,6 +108,6 @@ def get_server() -> FastAPI:
     # ping server route to check if live
     @app.get("/ping")
     def ping():
-        return Response(status_code=status.HTTP_200_OK)
+        return JSONResponse(content={"message": "Success!"}, status_code=status.HTTP_200_OK)
 
     return app

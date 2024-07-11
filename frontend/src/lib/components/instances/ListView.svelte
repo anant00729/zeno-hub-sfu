@@ -23,7 +23,8 @@
 	import Select from '../ui/Select.svelte';
 
 	export let numberOfInstances = 0;
-
+	export let selectedGroupBy = '';
+	
 	const zenoClient = getContext('zenoClient') as ZenoService;
 	const viewSpec = JSON.parse($project.view) as ViewSchema;
 
@@ -59,11 +60,13 @@
 		$selections.tags;
 		$sort;
 		$tagIds;
+		selectedGroupBy;
 		updateTable(true);
 	}
 	$: {
 		$selectionIds;
 		$filterSelection;
+		selectedGroupBy;
 		updateTable();
 	}
 
@@ -102,7 +105,8 @@
 			$sort,
 			dataIds,
 			zenoClient,
-			predicates
+			predicates,
+			selectedGroupBy
 		).then((t) => {
 			table = t;
 			if (resetScroll) listContainer.scrollTop = 0;
@@ -133,6 +137,7 @@
 						? selectionIds.set($selectionIds.filter((id) => id !== inst[idColumn]))
 						: selectionIds.set([...$selectionIds, inst[idColumn] + ''])}
 				selectable={$project.editor}
+				entry_data={inst}
 			/>
 		</div>
 	{/each}

@@ -20,6 +20,7 @@
 
 	export let currentResult: GroupMetric[] | undefined;
 	export let selected: string;
+	export let selectedGroupBy: string;
 
 	let showNewTag = false;
 	let showUpdateTag = false;
@@ -27,7 +28,9 @@
 	const zenoClient = getContext('zenoClient') as ZenoService;
 
 	$: choices = $project.view === '' ? ['table'] : ['list', 'table'];
+	$: groupBychoices = $project.groupByView === '' ? ['groupby images'] : ['groupby images', 'all records'];
 	$: selected = choices[0];
+	$: selectedGroupBy = groupBychoices[0];
 
 	function saveChanges() {
 		if ($editTag === undefined) return;
@@ -136,6 +139,19 @@
 			</div>
 			{#if !$page.url.href.includes('compare')}
 				<div class="ml-auto flex items-center">
+					<Group>
+						{#each groupBychoices as choice}
+							<Button
+								variant="outlined"
+								class={selectedGroupBy === choice ? 'bg-grey-lighter' : 'bg-white'}
+								on:click={() => (selectedGroupBy = choice)}>{choice}</Button
+							>
+						{/each}
+					</Group>
+				</div>
+			{/if}
+			{#if !$page.url.href.includes('compare')}
+				<div class="ml-4 flex items-center">
 					<Group>
 						{#each choices as choice}
 							<Button

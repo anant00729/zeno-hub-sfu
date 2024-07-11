@@ -29,11 +29,13 @@
 	const zenoClient = getContext('zenoClient') as ZenoService;
 
 	let selected = 'list';
+	
 	let currentResult: GroupMetric[] | undefined;
 	let modelAResult: Promise<GroupMetric[] | undefined> = new Promise(() => undefined);
 	let modelBResult: Promise<GroupMetric[] | undefined> = new Promise(() => undefined);
 	let numberOfInstances = 0;
 
+	$: selectedGroupBy = 'groupby images';
 	$: secureIds = [
 		...($tagIds === undefined ? [] : $tagIds),
 		...($filterSelection ? $selectionIds : [])
@@ -104,16 +106,16 @@
 	}
 </script>
 
-<SelectionBar {currentResult} bind:selected />
+<SelectionBar {currentResult} bind:selected bind:selectedGroupBy/>
 {#if compare && $model}
 	{#if $comparisonModel !== undefined}
-		<ComparisonView {modelAResult} {modelBResult} />
+		<ComparisonView {modelAResult} {modelBResult} {selectedGroupBy}/>
 	{/if}
 {:else}
 	{#if selected === 'list'}
-		<ListView {numberOfInstances} />
+		<ListView {numberOfInstances} {selectedGroupBy}/>
 	{/if}
 	{#if selected === 'table'}
-		<TableView {numberOfInstances} />
+		<TableView {numberOfInstances} {selectedGroupBy}/>
 	{/if}
 {/if}

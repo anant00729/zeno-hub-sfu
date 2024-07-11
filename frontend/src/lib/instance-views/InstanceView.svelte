@@ -15,6 +15,7 @@
 	export let systemColumn: string | undefined | null;
 	export let selectable = false;
 	export let highlighted = false;
+	export let entry_data: { [key: string]: any } = {};
 
 	const dispatch = createEventDispatcher();
 	const ajv = new Ajv();
@@ -86,6 +87,7 @@
 							data={typeof entry[dataColumn] === 'object'
 								? JSON.stringify(entry[dataColumn])
 								: entry[dataColumn]}
+							entry_data={entry_data}								
 						/>
 					{/if}
 					{#if labelColumn && entry[labelColumn] !== undefined && viewSpec.label}
@@ -116,6 +118,7 @@
 							data={typeof entry[dataColumn] === 'object'
 								? JSON.stringify(entry[dataColumn])
 								: entry[dataColumn]}
+							entry_data={entry_data}								
 						/>
 					</div>
 				{/if}

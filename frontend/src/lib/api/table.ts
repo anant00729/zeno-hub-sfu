@@ -15,7 +15,8 @@ export async function getFilteredTable(
 	sort: [ZenoColumn | undefined, boolean],
 	dataIds: string[],
 	client: ZenoService,
-	filterPredicates?: FilterPredicateGroup
+	filterPredicates?: FilterPredicateGroup,
+	selectedGroupBy?: string
 ) {
 	const requestedColumns = completeColumns.filter(
 		(c) =>
@@ -36,7 +37,7 @@ export async function getFilteredTable(
 			(c) => c.name === diffColumn.name && c.model === filterModels[1]
 		);
 	}
-
+	let isSelectedGroupBy = (selectedGroupBy === 'groupby images')
 	const res = await client.getFilteredTable(project_uuid, {
 		columns: requestedColumns,
 		model: filterModels[0],
@@ -46,7 +47,8 @@ export async function getFilteredTable(
 		offset,
 		limit,
 		sort,
-		dataIds
+		dataIds,
+		isSelectedGroupBy
 	});
 	return JSON.parse(res);
 }

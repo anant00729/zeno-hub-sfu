@@ -24,6 +24,7 @@
 	import Select from '../ui/Select.svelte';
 
 	export let numberOfInstances = 0;
+	export let selectedGroupBy = '';
 
 	const zenoClient = getContext('zenoClient') as ZenoService;
 
@@ -49,8 +50,17 @@
 		(c) =>
 			(c.model === undefined || c.model === null || c.model === $model) &&
 			(c.columnType === ZenoColumnType.FEATURE ||
-				((c.columnType === ZenoColumnType.LABEL || c.columnType === ZenoColumnType.OUTPUT) &&
-					$project.view == ''))
+				((c.columnType === ZenoColumnType.LABEL || c.columnType === ZenoColumnType.OUTPUT) && $project.view == '')) &&
+					c.name !== "d_xmax" &&
+					c.name !== "d_xmin" &&
+					c.name !== "d_ymin" &&
+					c.name !== "d_ymax" &&
+					c.name !== "xmax" &&
+					c.name !== "xmin" &&
+					c.name !== "ymin" &&
+					c.name !== "ymax" &&
+					c.name !== "height" &&
+					c.name !== "width" 					
 	);
 	$: start = currentPage * $rowsPerPage;
 	$: end = start + $rowsPerPage;
@@ -67,11 +77,13 @@
 		$sort;
 		$editTag;
 		$rowsPerPage;
+		selectedGroupBy;
 		updateTable(true);
 	}
 	$: {
 		$selectionIds;
 		$filterSelection;
+		selectedGroupBy;
 		updateTable();
 	}
 	$: systemColumn = $columns.find(
@@ -109,7 +121,8 @@
 			$sort,
 			dataIds,
 			zenoClient,
-			predicates
+			predicates,
+			selectedGroupBy
 		).then((t) => {
 			table = t;
 			if (resetScroll) tableContainer.scrollTop = 0;
@@ -129,7 +142,7 @@
 </script>
 
 <div class="h-full w-full overflow-auto" bind:this={tableContainer}>
-	<table>
+	<table style="width: 100%;">
 		<thead class="sticky top-0 z-10 cursor-pointer bg-background text-left">
 			<tr class="box-border border-b border-t border-grey-lighter bg-background">
 				<th class="font-grey p-3 font-semibold">ID</th>
@@ -169,7 +182,7 @@
 			{#each table as tableContent (`${tableContent[idColumn]}_${systemColumn}`)}
 				<tr class="border-b border-grey-lighter">
 					<td class="border border-grey-lighter p-3 align-top">
-						{tableContent[idColumn]}
+						{tableContent[idColumn]} 
 					</td>
 					{#if $project.view}
 						<td class="p-3">
@@ -192,6 +205,7 @@
 													)
 												: selectionIds.set([...$selectionIds, tableContent[idColumn] + ''])}
 										selectable={$project.editor}
+										entry_data={tableContent}
 									/>
 								</div>
 							{/if}

@@ -26,6 +26,7 @@
 
 	export let modelAResult: Promise<GroupMetric[] | undefined>;
 	export let modelBResult: Promise<GroupMetric[] | undefined>;
+	export let selectedGroupBy = '';
 
 	const zenoClient = getContext('zenoClient') as ZenoService;
 
@@ -159,7 +160,8 @@
 			$compareSort,
 			dataIds,
 			zenoClient,
-			predicates
+			predicates,
+			selectedGroupBy
 		).then((t) => {
 			table = t;
 			if (resetScroll) instanceContainer.scrollTop = 0;

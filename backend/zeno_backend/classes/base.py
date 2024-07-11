@@ -78,6 +78,15 @@ class ZenoColumn(CamelModel):
     data_type: MetadataType
     model: str | None = None
 
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'column_type': self.column_type.value,
+            'data_type': self.data_type.value,
+            'model': self.model
+        }
+
 
 class GroupMetric(CamelModel):
     """Specification for a metric on a group of datapoints."""

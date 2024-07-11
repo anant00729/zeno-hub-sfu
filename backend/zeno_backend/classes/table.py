@@ -31,6 +31,7 @@ class TableRequest(CamelModel):
     filter_predicates: FilterPredicateGroup | None = None
     sort: tuple[ZenoColumn | None, bool]
     data_ids: list[str] | None = None
+    isSelectedGroupBy: bool | None = None
 
 
 class SliceTableRequest(CamelModel):
